@@ -13,15 +13,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
@@ -76,7 +70,7 @@ public class DealActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/jpeg");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivityForResult(intent.createChooser(intent,
+                startActivityForResult(Intent.createChooser(intent,
                         "Insert Picture"), INSERT_PICTURE_REQ_CODE);
             }
         });
@@ -154,19 +148,12 @@ public class DealActivity extends AppCompatActivity {
         if (deal.getImageName() != null && !deal.getImageName().isEmpty()) {
             StorageReference picRef = FirebaseUtil.sFirebaseStorage.getReference().
                     child(deal.getImageName());
-            picRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
+            picRef.delete().addOnSuccessListener(aVoid ->
                     Toast.makeText(DealActivity.this, "Delete image Successful",
-                            Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(DealActivity.this, "Delete image failed",
-                            Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "onFailure: -------------" + e.getMessage());
-                }
+                            Toast.LENGTH_SHORT).show()).addOnFailureListener(e -> {
+                Toast.makeText(DealActivity.this, "Delete image failed",
+                        Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "onFailure: -------------" + e.getMessage());
             });
         }
     }
@@ -193,29 +180,22 @@ public class DealActivity extends AppCompatActivity {
 
             final UploadTask uploadTask = reference.putFile(imageUri);
 
-            uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot,
-                    Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-                    // Continue with the task to get the download URL
-                    return reference.getDownloadUrl();
+            uploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
                 }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()) {
-                        String downloadUri = Objects.requireNonNull(task.getResult()).toString();
-                        String fileName = uploadTask.getSnapshot().getStorage().getPath();
-                        Log.e(TAG, "onComplete: -----------------" + fileName);
-                        deal.setImageUrl(downloadUri);
-                        deal.setImageName(fileName);
-                        showImage(downloadUri);
-                    } else {
-                        Toast.makeText(DealActivity.this, "", Toast.LENGTH_SHORT).show();
-                    }
+                // Continue with the task to get the download URL
+                return reference.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    String downloadUri = Objects.requireNonNull(task.getResult()).toString();
+                    String fileName = uploadTask.getSnapshot().getStorage().getPath();
+                    Log.e(TAG, "onComplete: -----------------" + fileName);
+                    deal.setImageUrl(downloadUri);
+                    deal.setImageName(fileName);
+                    showImage(downloadUri);
+                } else {
+                    Toast.makeText(DealActivity.this, "", Toast.LENGTH_SHORT).show();
                 }
             });
         }

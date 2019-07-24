@@ -1,7 +1,5 @@
 package com.disruption.travelmantix;
 
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -44,15 +42,12 @@ public class FirebaseUtil {
             sFirebaseDatabase = FirebaseDatabase.getInstance();
             sFirebaseAuth = FirebaseAuth.getInstance();
             sCallerActivity = callerActivity;
-            sAuthStateListener = new FirebaseAuth.AuthStateListener() {
-                @Override
-                public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                    if (firebaseAuth.getCurrentUser() == null) {
-                        signIn();
-                    } else {
-                        String userId = firebaseAuth.getUid();
-                        checkIfUserIsAdmin(userId);
-                    }
+            sAuthStateListener = firebaseAuth -> {
+                if (firebaseAuth.getCurrentUser() == null) {
+                    signIn();
+                } else {
+                    String userId = firebaseAuth.getUid();
+                    checkIfUserIsAdmin(userId);
                 }
             };
             connectStorage();
