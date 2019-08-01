@@ -58,7 +58,7 @@
 
     <ImageView
         android:id="@+id/image"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/text_margin_std"
         android:layout_marginTop="@dimen/text_margin_std"
@@ -66,7 +66,6 @@
         android:layout_marginBottom="@dimen/text_margin_std"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnImage"
-        app:srcCompat="@color/fui_transparent" />
+        app:layout_constraintTop_toBottomOf="@+id/btnImage" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

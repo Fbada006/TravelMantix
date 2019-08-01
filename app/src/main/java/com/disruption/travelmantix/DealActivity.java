@@ -1,13 +1,11 @@
 package com.disruption.travelmantix;
 
 import android.content.Intent;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -64,15 +62,12 @@ public class DealActivity extends AppCompatActivity {
         txtPrice.setText(deal.getPrice());
 
         mButtonImage = findViewById(R.id.btnImage);
-        mButtonImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/jpeg");
-                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivityForResult(Intent.createChooser(intent,
-                        "Insert Picture"), INSERT_PICTURE_REQ_CODE);
-            }
+        mButtonImage.setOnClickListener(view -> {
+            Intent intent1 = new Intent(Intent.ACTION_GET_CONTENT);
+            intent1.setType("image/*");
+            intent1.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+            startActivityForResult(Intent.createChooser(intent1,
+                    "Insert Picture"), INSERT_PICTURE_REQ_CODE);
         });
 
         showImage(deal.getImageUrl());
@@ -181,21 +176,23 @@ public class DealActivity extends AppCompatActivity {
             final UploadTask uploadTask = reference.putFile(imageUri);
 
             uploadTask.continueWithTask(task -> {
+                //There is an error.
                 if (!task.isSuccessful()) {
                     throw task.getException();
                 }
-                // Continue with the task to get the download URL
+
+                // Otherwise continue with the task to get the download URL
                 return reference.getDownloadUrl();
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     String downloadUri = Objects.requireNonNull(task.getResult()).toString();
                     String fileName = uploadTask.getSnapshot().getStorage().getPath();
-                    Log.e(TAG, "onComplete: -----------------" + fileName);
+
                     deal.setImageUrl(downloadUri);
                     deal.setImageName(fileName);
                     showImage(downloadUri);
                 } else {
-                    Toast.makeText(DealActivity.this, "", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(DealActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -203,12 +200,16 @@ public class DealActivity extends AppCompatActivity {
 
     private void showImage(String url) {
         if (url != null && !url.isEmpty()) {
-            int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+            // int width = Resources.getSystem().getDisplayMetrics().widthPixels;
             Picasso.get()
                     .load(url)
-                    .resize(width, width * 2 / 3)
-                    .centerCrop()
+                    //.resize(width, width * 2 / 3)
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.ic_error_outline)
+                    //.centerCrop()
                     .into(mImageView);
+        } else {
+            Toast.makeText(this, "Url is null", Toast.LENGTH_LONG).show();
         }
     }
 }

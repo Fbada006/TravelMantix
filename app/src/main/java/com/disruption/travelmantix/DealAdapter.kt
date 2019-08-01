@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
@@ -52,7 +53,7 @@ class DealAdapter : RecyclerView.Adapter<DealAdapter.DealViewHolder>() {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DealViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.rv_row, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.deal_item, parent, false)
         return DealViewHolder(view)
     }
 
@@ -78,7 +79,13 @@ class DealAdapter : RecyclerView.Adapter<DealAdapter.DealViewHolder>() {
         fun bind(deal: TravelDeal) {
             tvTitle.text = deal.title
             tvDescription.text = deal.description
-            tvPrice.text = deal.price
+            try {
+                tvPrice.text = String.format("%s: %d", "$", deal.price?.toInt())
+            } catch (e: Exception) {
+                Toast.makeText(itemView.context, "Not a valid price for ${deal.title}",
+                        Toast.LENGTH_SHORT).show()
+            }
+
             showImage(deal.imageUrl)
         }
 
@@ -91,11 +98,15 @@ class DealAdapter : RecyclerView.Adapter<DealAdapter.DealViewHolder>() {
         }
 
         private fun showImage(url: String?) {
-            if (url != null && url.isNotEmpty()) {
+            if (!url.isNullOrEmpty()) {
                 Picasso.get()
                         .load(url)
-                        .resize(160, 160)
-                        .centerCrop()
+                        .placeholder(R.drawable.loading_animation)
+                        .error(R.drawable.ic_error_outline)
+                        .into(mImageDeal)
+            } else {
+                Picasso.get()
+                        .load(R.drawable.ic_error_outline)
                         .into(mImageDeal)
             }
         }

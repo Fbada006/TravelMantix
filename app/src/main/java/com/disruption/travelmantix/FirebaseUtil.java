@@ -18,17 +18,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FirebaseUtil {
-    private static final String TAG = "FirebaseUtil";
     private static final int RC_SIGN_IN = 123;
     private static final String ADMINISTRATORS_PATH = "administrators";
-    public static final String DEALS_PICTURES_PATH = "deals_pictures";
+    private static final String DEALS_PICTURES_PATH = "deals_pictures";
     public static FirebaseDatabase sFirebaseDatabase;
     public static DatabaseReference sDatabaseReference;
-    public static FirebaseAuth sFirebaseAuth;
-    public static FirebaseAuth.AuthStateListener sAuthStateListener;
+    static FirebaseStorage sFirebaseStorage;
+    static StorageReference sStorageReference;
     private static FirebaseUtil sFirebaseUtil;
-    public static FirebaseStorage sFirebaseStorage;
-    public static StorageReference sStorageReference;
+    private static FirebaseAuth sFirebaseAuth;
+    private static FirebaseAuth.AuthStateListener sAuthStateListener;
     public static ArrayList<TravelDeal> sDeals;
     private static ListActivity sCallerActivity;
     public static boolean sIsUserAdmin;
@@ -44,8 +43,10 @@ public class FirebaseUtil {
             sCallerActivity = callerActivity;
             sAuthStateListener = firebaseAuth -> {
                 if (firebaseAuth.getCurrentUser() == null) {
+                    //No one is signed in so show the sign in screen
                     signIn();
                 } else {
+                    //Check if the user is admin so that we show the add deal menu or not
                     String userId = firebaseAuth.getUid();
                     checkIfUserIsAdmin(userId);
                 }
@@ -101,7 +102,7 @@ public class FirebaseUtil {
         sCallerActivity.startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
-                        .setLogo(R.mipmap.ic_launcher_round)      // Set logo drawable
+                        .setLogo(R.drawable.deal_image)      // Set logo drawable
                         .setTheme(R.style.AppTheme)
                         .setAvailableProviders(providers)
                         .build(),
@@ -116,7 +117,7 @@ public class FirebaseUtil {
         sFirebaseAuth.removeAuthStateListener(sAuthStateListener);
     }
 
-    public static void connectStorage() {
+    private static void connectStorage() {
         sFirebaseStorage = FirebaseStorage.getInstance();
         sStorageReference = sFirebaseStorage.getReference().child(DEALS_PICTURES_PATH);
     }
